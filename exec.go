@@ -9,17 +9,26 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	osquery "github.com/osquery/osquery-go"
 	"github.com/osquery/osquery-go/plugin/table"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatalf(`Usage: %s SOCKET_PATH`, os.Args[0])
+	tries := 10
+	for i := 0; i < tries; i++ {
+		info, err := os.Stat("/opt/orbit/orbit-osquery.em")
+		if os.IsNotExist(err) {
+			time.Sleep(3 * time.Second)
+			continue
+		}
+		if !info.IsDir() {
+			break
+		}
 	}
 
-	server, err := osquery.NewExtensionManagerServer("exec", os.Args[1])
+	server, err := osquery.NewExtensionManagerServer("exec", "/opt/orbit/orbit-osquery.em")
 	if err != nil {
 		log.Fatalf("Error creating extension: %s\n", err)
 	}
